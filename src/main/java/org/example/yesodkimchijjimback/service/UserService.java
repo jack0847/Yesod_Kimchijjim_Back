@@ -7,7 +7,6 @@ import org.example.yesodkimchijjimback.domain.RoomMember;
 import org.example.yesodkimchijjimback.domain.User;
 import org.example.yesodkimchijjimback.dto.RoomMemberRe.RoomMemberResponse;
 import org.example.yesodkimchijjimback.dto.UserRe.UserResponse;
-import org.example.yesodkimchijjimback.repository.RoomRepository;
 import org.example.yesodkimchijjimback.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.example.yesodkimchijjimback.repository.RoomMemberRepository;
@@ -16,7 +15,6 @@ import org.example.yesodkimchijjimback.repository.RoomMemberRepository;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final RoomRepository roomRepository;
     private final RoomMemberRepository roomMemberRepository;
     private final UserRepository userRepository;
 

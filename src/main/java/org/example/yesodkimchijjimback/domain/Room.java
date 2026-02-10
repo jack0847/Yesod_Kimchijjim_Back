@@ -33,9 +33,17 @@ public class Room {
     @Column(nullable = false)
     private int currentPeople;
 
-    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "room", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<RoomMember> members = new ArrayList<>();
 
+    @OneToMany(mappedBy = "room", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Opinion> opinions = new ArrayList<>();
+
+    private List<String> allVote = new ArrayList<>();
+
+    public void addVote(String voteString){
+        this.allVote.add(voteString);
+    }
 
     public static Room fromEntity(RoomRequest roomRequest){
         String randomCode;
