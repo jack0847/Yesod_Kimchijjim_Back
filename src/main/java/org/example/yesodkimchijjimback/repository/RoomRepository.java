@@ -13,4 +13,5 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     void deleteByRoomCode(String roomCode);
 
     boolean existsByRoomCode(String roomCode);
+
 }

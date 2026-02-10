@@ -105,7 +105,7 @@ public class RoomService {
         RoomMember roomMember = RoomMember.builder()
                 .room(room)
                 .user(user)
-                .nickname(userJoinRequest.getName())
+                .nickname(userJoinRequest.getNickname())
                 .isHost(isHost)
                 .build();
 

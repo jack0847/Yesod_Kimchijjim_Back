@@ -7,5 +7,5 @@ public class UserJoinRequest {
 
     private Long userId;
     private String code;
-    private String name;
+    private String nickname;
 }

@@ -13,7 +13,7 @@ public class RoomResponse {
     private int maxPeople;
 
     public static RoomResponse fromResponse(Room room){
-        return builder()
+        return RoomResponse.builder()
                 .id(room.getId())
                 .roomName(room.getRoomName())
                 .roomCode(room.getRoomCode())

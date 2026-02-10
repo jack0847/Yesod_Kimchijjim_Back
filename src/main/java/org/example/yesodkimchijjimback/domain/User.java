@@ -27,12 +27,11 @@ public class User {
     @Column(unique = true)
     private String googleSub;
 
-    @OneToMany (
-                mappedBy = "user",
-                fetch = FetchType.LAZY,
-                cascade = {CascadeType.ALL}
-    )
+    @OneToMany (mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<RoomMember> roomMembers = new ArrayList<>();
+
+    @OneToMany (mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Opinion> opinions = new ArrayList<>();
 
     public void updateName(String name) {
         this.name = name;
