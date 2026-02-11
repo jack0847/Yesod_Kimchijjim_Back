@@ -14,6 +14,8 @@ import org.example.yesodkimchijjimback.repository.RoomRepository;
 import org.example.yesodkimchijjimback.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class OpinionService {
@@ -31,7 +33,8 @@ public class OpinionService {
         Room room = roomRepository.findByRoomCode(opinionRequest.getRoomCode())
                 .orElseThrow(() -> new IllegalArgumentException("찾는 방이 없습니다."));
 
-        RoomMember roomMember = roomMemberRepository.findByUserAndRoom(user, room).orElseThrow();
+        RoomMember roomMember = roomMemberRepository.findByUserAndRoom(user, room)
+                .orElseThrow(() -> new IllegalArgumentException("멤버가 존재하지 않습니다."));
 
         Opinion opinion = opinionRepository.save(Opinion.builder()
                 .content(opinionRequest.getContent())
@@ -43,23 +46,9 @@ public class OpinionService {
         return OpinionResponse.fromResponse(opinion);
     }
 
-//    @Transactional
-//    public OpinionResponse getOpinion(Long userId, String roomCode){
-//
-//    }
-//
-//    @Transactional
-//    public OpinionResponse getAllOpinion(){
-//
-//    }
-//
-//    @Transactional
-//    public OpinionResponse updateOpinion(){
-//
-//    }
-//
-//    @Transactional
-//    public OpinionResponse deleteOpinion(){
-//
-//    }
+    @Transactional
+    public List<OpinionResponse> getAllOpinions(String roomCode){
+        List<Opinion> allOpinions = opinionRepository.findAllByRoomRoomCodeOrderByCreatedDateDesc(roomCode);
+        return allOpinions.stream().map(OpinionResponse::fromResponse).toList();
+    }
 }

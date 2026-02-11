@@ -48,18 +48,30 @@ public class RoomController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/check/{roomCode}")
-    public ResponseEntity<Void> checkRoomCode(@PathVariable String roomCode){
-        if(roomService.checkRoomCode(roomCode)){
+    @GetMapping("/check")
+    public ResponseEntity<Void> checkRoomCode(@RequestParam String roomCode){
+        try {
+            roomService.checkRoomCode(roomCode);
             return ResponseEntity.ok().build();
-        }else{
-            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PostMapping("/join")
     public ResponseEntity<Void> joinRoom(@RequestBody UserJoinRequest userJoinRequest
             , @SessionAttribute(name = GoogleAuthController.SESSION_USER_ID, required = false) Long userId){
+
+        System.out.println("========================================");
+        System.out.println("🚨 클라이언트가 보낸 데이터 확인 🚨");
+        System.out.println("1. 방 코드(roomCode): [" + userJoinRequest.getRoomCode() + "]");
+        System.out.println("2. 닉네임(nickname): [" + userJoinRequest.getNickname() + "]");
+        System.out.println("========================================");
+
         roomService.joinRoom(userJoinRequest, userId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

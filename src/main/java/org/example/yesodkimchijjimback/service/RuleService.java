@@ -90,7 +90,7 @@ public class RuleService {
             return new MatchResponse("WAITING", null);
         }
 
-        List<Rule> rules = ruleRepository.findByRoomCode(roomCode);
+        List<Rule> rules = ruleRepository.findByRoomRoomCode(roomCode);
 
         if(rules.isEmpty()){
             return new MatchResponse("MISMATCH", null);

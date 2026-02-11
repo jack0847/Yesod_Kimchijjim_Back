@@ -23,7 +23,7 @@ public class Opinion {
     private String content;
 
     @Column(nullable = false)
-    private String nickname;
+    private String nickname; // 작성자
 
     @CreatedDate // 저장될 때 시간이 자동으로 들어감
     @Column(updatable = false)

@@ -86,7 +86,7 @@ public class RoomService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
 
-        Room room = roomRepository.findByRoomCode(userJoinRequest.getCode())
+        Room room = roomRepository.findByRoomCode(userJoinRequest.getRoomCode())
                 .orElseThrow(() -> new IllegalArgumentException("찾는 방이 없습니다."));
 
         if (roomMemberRepository.existsByRoomAndUser(room, user)) {
@@ -112,8 +112,13 @@ public class RoomService {
         roomMemberRepository.save(roomMember);
     }
 
-    public boolean checkRoomCode(String roomCode) {
-        return roomRepository.existsByRoomCode(roomCode);
+    public void checkRoomCode(String roomCode) {
+        Room room = roomRepository.findByRoomCode(roomCode)
+                .orElseThrow(() ->  new IllegalArgumentException("방을 찾을 수 없습니다."));
+        Long currentPeople = roomMemberRepository.countByRoom(room);
+        if(currentPeople >= room.getMaxPeople()){
+            throw new IllegalStateException("방이 가득 찼습니다.");
+        }
     }
 
     @Transactional
