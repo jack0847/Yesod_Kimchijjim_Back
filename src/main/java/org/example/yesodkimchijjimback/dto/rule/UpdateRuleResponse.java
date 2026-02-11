@@ -1,10 +1,10 @@
 package org.example.yesodkimchijjimback.dto.rule;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.yesodkimchijjimback.domain.Rule;
 
 import java.util.List;
 
@@ -12,13 +12,10 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+public class UpdateRuleResponse {
 
-public class MatchResponse {
-
-    private int currentVotes;
     private String status;
-    private List<String> data;
     private boolean amIHost;
+    private List<Rule> data;
     private String category;
-
 }

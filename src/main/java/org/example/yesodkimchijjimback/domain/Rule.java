@@ -21,7 +21,16 @@ public class Rule {
     @Column(nullable = false)
     private String rule;
 
+    @Column(nullable = false)
+    private Long questionId; //수정함
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
     private Room room;
+
+    public void updateRule(String rule) {
+        this.rule = rule;
+    }
 }
+

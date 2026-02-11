@@ -63,8 +63,13 @@ public class Room {
                 .build();
     }
 
-    public void update(RoomRequest roomRequest){
+    private String status = "MODIFYING"; // 방 전체 상태
+
+    public void update(RoomRequest roomRequest){ //방 이름이나 정보 변경
         this.roomName = roomRequest.getRoomName();
         this.maxPeople = roomRequest.getMaxPeople();
+    }
+    public void updateStatus(String status) { //방 상태 변경
+        this.status = status;
     }
 }

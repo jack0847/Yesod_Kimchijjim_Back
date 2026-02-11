@@ -128,7 +128,7 @@ public class RoomService {
                 .orElseThrow(() ->  new IllegalArgumentException("방을 찾을 수 없습니다."));
         Long currentPeople = roomMemberRepository.countByRoom(room);
         boolean isFull = (currentPeople >= room.getMaxPeople());
-        return WaitingRoomResponse.fromResponse(isFull, currentPeople);
+        return WaitingRoomResponse.fromResponse(isFull, currentPeople, room.getMaxPeople());
     }
 
     @Transactional
