@@ -8,6 +8,7 @@ import org.example.yesodkimchijjimback.domain.User;
 import org.example.yesodkimchijjimback.dto.UserRe.UserJoinRequest;
 import org.example.yesodkimchijjimback.dto.room.RoomRequest;
 import org.example.yesodkimchijjimback.dto.room.RoomResponse;
+import org.example.yesodkimchijjimback.dto.room.WaitingRoomResponse;
 import org.example.yesodkimchijjimback.repository.RoomMemberRepository;
 import org.example.yesodkimchijjimback.repository.RoomRepository;
 import org.example.yesodkimchijjimback.repository.UserRepository;
@@ -112,6 +113,7 @@ public class RoomService {
         roomMemberRepository.save(roomMember);
     }
 
+    @Transactional
     public void checkRoomCode(String roomCode) {
         Room room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() ->  new IllegalArgumentException("방을 찾을 수 없습니다."));
@@ -119,6 +121,14 @@ public class RoomService {
         if(currentPeople >= room.getMaxPeople()){
             throw new IllegalStateException("방이 가득 찼습니다.");
         }
+    }
+    @Transactional
+    public WaitingRoomResponse checkMember(String roomCode) {
+        Room room = roomRepository.findByRoomCode(roomCode)
+                .orElseThrow(() ->  new IllegalArgumentException("방을 찾을 수 없습니다."));
+        Long currentPeople = roomMemberRepository.countByRoom(room);
+        boolean isFull = (currentPeople >= room.getMaxPeople());
+        return WaitingRoomResponse.fromResponse(isFull, currentPeople);
     }
 
     @Transactional
@@ -134,5 +144,16 @@ public class RoomService {
         if(roomMember.isHost()) throw new IllegalStateException("방장은 방을 나갈 수 없습니다.");
 
         roomMemberRepository.delete(roomMember);
+    }
+
+    @Transactional
+    public String getUserNicknameInRoom(String roomCode, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+
+        Room room = roomRepository.findByRoomCode(roomCode)
+                .orElseThrow(() -> new IllegalArgumentException("찾는 방이 없습니다."));
+
+        return roomMemberRepository.findByUserAndRoom(user, room).orElseThrow().getNickname();
     }
 }

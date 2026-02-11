@@ -5,10 +5,15 @@ import lombok.RequiredArgsConstructor;
 import org.example.yesodkimchijjimback.dto.UserRe.UserJoinRequest;
 import org.example.yesodkimchijjimback.dto.room.RoomRequest;
 import org.example.yesodkimchijjimback.dto.room.RoomResponse;
+import org.example.yesodkimchijjimback.dto.room.WaitingRoomResponse;
+import org.example.yesodkimchijjimback.repository.UserRepository;
 import org.example.yesodkimchijjimback.service.RoomService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,9 +31,18 @@ public class RoomController {
     }
 
     @GetMapping("/{roomCode}")
-    public ResponseEntity<RoomResponse> read(@PathVariable String roomCode){
+    public ResponseEntity<Map<String, Object>> read(
+            @PathVariable String roomCode,
+            @SessionAttribute(name = GoogleAuthController.SESSION_USER_ID, required = false)Long userId){
         RoomResponse roomResponse = roomService.readRoom(roomCode);
-        return ResponseEntity.ok(roomResponse);
+
+        String nickname = roomService.getUserNicknameInRoom(roomCode, userId);
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("roomInfo", roomResponse);
+        responseBody.put("nickname", nickname);
+
+        return ResponseEntity.ok(responseBody);
     }
 
     @PutMapping("/{roomCode}")
@@ -67,13 +81,18 @@ public class RoomController {
             , @SessionAttribute(name = GoogleAuthController.SESSION_USER_ID, required = false) Long userId){
 
         System.out.println("========================================");
-        System.out.println("🚨 클라이언트가 보낸 데이터 확인 🚨");
+        System.out.println("클라이언트가 보낸 데이터 확인");
         System.out.println("1. 방 코드(roomCode): [" + userJoinRequest.getRoomCode() + "]");
         System.out.println("2. 닉네임(nickname): [" + userJoinRequest.getNickname() + "]");
         System.out.println("========================================");
 
         roomService.joinRoom(userJoinRequest, userId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping("/{roomCode}/waiting")
+    public ResponseEntity<WaitingRoomResponse> checkMember(@RequestParam String roomCode){
+        return ResponseEntity.ok(roomService.checkMember(roomCode));
     }
 
     @DeleteMapping("/{roomCode}/leave")
