@@ -11,7 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface RuleRepository extends JpaRepository<Rule, Long> {
-    List<Rule> findByRoomCode(String roomCode);
 
     List<Rule> findAllByRoom(Room room);
 

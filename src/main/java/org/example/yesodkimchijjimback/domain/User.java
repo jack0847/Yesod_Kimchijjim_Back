@@ -37,7 +37,7 @@ public class User {
         this.name = name;
     }
 
-    public void connectGoogle(String googleSub) {
+    public void updateGoogleSub(String googleSub) {
         this.googleSub = googleSub;
     }
 }

@@ -91,7 +91,7 @@ public class RoomController {
     }
 
     @GetMapping("/{roomCode}/waiting")
-    public ResponseEntity<WaitingRoomResponse> checkMember(@RequestParam String roomCode){
+    public ResponseEntity<WaitingRoomResponse> checkMember(@PathVariable String roomCode){
         return ResponseEntity.ok(roomService.checkMember(roomCode));
     }
 

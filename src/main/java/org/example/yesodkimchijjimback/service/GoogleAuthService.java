@@ -35,6 +35,14 @@ public class GoogleAuthService {
             return userRepository.save(user);
         }
 
+        User existingUserByEmail = userRepository.findByEmail(email).orElse(null);
+
+        if (existingUserByEmail != null) {
+            existingUserByEmail.updateGoogleSub(sub);
+            existingUserByEmail.updateName(name);
+            return userRepository.save(existingUserByEmail);
+        }
+
         // 완전 신규 회원
         User newUser = User.builder()
                 .name(name != null ? name : "google-user")

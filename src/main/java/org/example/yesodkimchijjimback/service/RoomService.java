@@ -122,12 +122,18 @@ public class RoomService {
             throw new IllegalStateException("방이 가득 찼습니다.");
         }
     }
-    @Transactional
+
     public WaitingRoomResponse checkMember(String roomCode) {
         Room room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() ->  new IllegalArgumentException("방을 찾을 수 없습니다."));
         Long currentPeople = roomMemberRepository.countByRoom(room);
         boolean isFull = (currentPeople >= room.getMaxPeople());
+
+        System.out.println(">>> [WaitingRoom Check] Room: " + roomCode +
+                " | Current: " + currentPeople +
+                " | Max: " + room.getMaxPeople() +
+                " | isFull: " + isFull);
+
         return WaitingRoomResponse.fromResponse(isFull, currentPeople, room.getMaxPeople());
     }
 
