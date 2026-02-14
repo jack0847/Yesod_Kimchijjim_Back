@@ -1,70 +1,77 @@
+
 package org.example.yesodkimchijjimback.controller;
+
 
 import lombok.RequiredArgsConstructor;
 import org.example.yesodkimchijjimback.dto.rule.MatchResponse;
 import org.example.yesodkimchijjimback.dto.rule.RuleRequest;
 import org.example.yesodkimchijjimback.dto.rule.UpdateRuleResponse;
 import org.example.yesodkimchijjimback.service.RuleService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/room/{roomCode}")
+@RequestMapping("/room")
 public class RuleController {
 
     private final RuleService ruleService;
 
-    @PostMapping("/test/result") //답변 제출 할때
-    public MatchResponse submitRule(@PathVariable String roomCode, @RequestBody RuleRequest ruleRequest) {
-        Long userId = ruleRequest.getUserId(); // DTO에 userId가 있다고 가정
-        return ruleService.submitRule(roomCode, ruleRequest, userId);
+    // 답변 제출
+    @PostMapping("/test/result")
+    public MatchResponse submitRule(@RequestBody RuleRequest ruleRequest) {
+        return ruleService.submitRule(ruleRequest.getRoomCode(), ruleRequest, ruleRequest.getUserId());
     }
 
-    @GetMapping("/test/result")// 다 답변했는지 확인
+    // 폴링 (GET 방식 - 파라미터 유지)
+    @GetMapping("/{roomCode}/test/result")
     public MatchResponse redirect(@PathVariable String roomCode, @RequestParam Long userId) {
         return ruleService.redirect(roomCode, userId);
     }
 
-    @PostMapping("/match") //match일때 전원 합의 확인
-    public String startNextMatch(@PathVariable String roomCode, @RequestParam Long userId) {
-        return ruleService.startNext(roomCode, userId);
-    }
-    @PostMapping("/rule/confirm/mismatch") //mismatch이고 방장이 적은 규칙 전원 합의 확인
-    public String startNextMismatch(@PathVariable String roomCode, @RequestParam Long userId) {
-        return ruleService.startNext(roomCode, userId);
+    // MATCH 상황 전원 합의 확인
+    @PostMapping("/match")
+    public String startNextMatch(@RequestBody RuleRequest ruleRequest) {
+        return ruleService.startNext(ruleRequest.getRoomCode(), ruleRequest.getUserId());
     }
 
-    @PostMapping("/rule/confirm") //방장이 강제 확정
-    public String confirmRule(@PathVariable String roomCode, @RequestBody RuleRequest ruleRequest, @RequestParam Long userId) {
-        ruleService.confirmRule(roomCode, ruleRequest, userId);
+    // MISMATCH 상황 방장 규칙 합의 확인
+    @PostMapping("/rule/confirm/mismatch")
+    public String startNextMismatch(@RequestBody RuleRequest ruleRequest) {
+        return ruleService.startNext(ruleRequest.getRoomCode(), ruleRequest.getUserId());
+    }
+
+    // 방장이 강제 확정
+    @PostMapping("/rule/confirm")
+    public String confirmRule(@RequestBody RuleRequest ruleRequest) {
+        ruleService.confirmRule(ruleRequest.getRoomCode(), ruleRequest, ruleRequest.getUserId());
         return "Rule confirmed";
     }
 
-    @GetMapping("/test/summary")
+    // 전체 룰 가져오기 (GET 방식 - 파라미터 유지)
+    @GetMapping("/{roomCode}/test/summary")
     public UpdateRuleResponse getRuleSummary(@PathVariable String roomCode, @RequestParam Long userId, @ModelAttribute RuleRequest request) {
         return ruleService.getRuleSummary(roomCode, userId, request);
     }
 
-    @PostMapping("/test/summary")// 룰 방장만 추가하기
-    public String addRule(@PathVariable String roomCode, @RequestBody RuleRequest request) {
-        ruleService.addRule(roomCode, request.getUserId(), request);
+    // 룰 추가
+    @PostMapping("/test/summary")
+    public String addRule(@RequestBody RuleRequest request) {
+        ruleService.addRule(request.getRoomCode(), request.getUserId(), request);
         return "Rule Added";
     }
 
-    @PutMapping("/test/summary") //룰 방장만 수정하기
-    public String updateRule(@PathVariable String roomCode, @RequestBody RuleRequest request) {
-        ruleService.updateRule(roomCode, request.getUserId(), request);
+    // 룰 수정
+    @PutMapping("/test/summary/{ruleId}")
+    public String updateRule(@PathVariable Long ruleId, @RequestBody RuleRequest request) {
+        ruleService.updateRule(request.getRoomCode(), request.getUserId(), ruleId, request);
         return "Rule Updated";
     }
 
-    @PostMapping("/test/summary/complete") //방장이 넘어갈때 전원 넘어가기
-    public String completeRoom(@PathVariable String roomCode, @RequestParam Long userId) {
-        ruleService.statusComplete(roomCode, userId);
+    // 최종 완료
+    @PostMapping("/test/summary/complete")
+    public String completeRoom(@RequestBody RuleRequest request) {
+        ruleService.statusComplete(request.getRoomCode(), request.getUserId());
         return "Room Completed";
     }
-
-
 }

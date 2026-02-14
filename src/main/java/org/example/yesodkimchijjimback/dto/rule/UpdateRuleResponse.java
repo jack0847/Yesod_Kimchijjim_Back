@@ -16,6 +16,6 @@ public class UpdateRuleResponse {
 
     private String status;
     private boolean amIHost;
-    private List<Rule> data;
+    private List<RuleSummaryResponse> data;
     private String category;
 }

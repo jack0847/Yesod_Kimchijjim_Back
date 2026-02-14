@@ -15,4 +15,6 @@ public interface RuleRepository extends JpaRepository<Rule, Long> {
     List<Rule> findAllByRoom(Room room);
 
     Optional<Rule> findByRoomAndQuestionId(Room room, Long questionId);
+
+    Optional<Rule> findByIdAndRoom(Long id, Room room);
 }

@@ -8,9 +8,9 @@ import java.util.List;
 @Getter
 public class RuleRequest {
 
-    private Long roomCode;
-    private Long questionId; //수정함
+    private String roomCode;
     private Long userId;
+    private Long questionId; //수정함
     private List<String> opinion;//수정함
     private String category;
 }

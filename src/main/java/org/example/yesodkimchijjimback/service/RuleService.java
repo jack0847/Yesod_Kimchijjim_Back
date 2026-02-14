@@ -9,6 +9,7 @@ import org.example.yesodkimchijjimback.domain.Rule;
 import org.example.yesodkimchijjimback.domain.User;
 import org.example.yesodkimchijjimback.dto.rule.MatchResponse;
 import org.example.yesodkimchijjimback.dto.rule.RuleRequest;
+import org.example.yesodkimchijjimback.dto.rule.RuleSummaryResponse;
 import org.example.yesodkimchijjimback.dto.rule.UpdateRuleResponse;
 import org.example.yesodkimchijjimback.repository.RoomMemberRepository;
 import org.example.yesodkimchijjimback.repository.RoomRepository;
@@ -16,6 +17,8 @@ import org.example.yesodkimchijjimback.repository.RuleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+
+import static org.apache.tomcat.util.http.parser.HttpParser.isNumeric;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,10 @@ public class RuleService {
     public MatchResponse submitRule(String roomCode, RuleRequest ruleRequest, Long userId) {
         Room room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() -> new IllegalArgumentException("찾는 방이 없습니다."));
+
+        if (!room.getAllVote().isEmpty() && room.getAllVote().get(0).matches("\\d+")) { //matches("\\d+") 이 코드가 투표함 안에 다 숫자인지 확인하고 숫자면 true 아니면 false 반환
+            room.getAllVote().clear();
+        }
 
         List<String> voteList = new ArrayList<>(ruleRequest.getOpinion()); // 사용자가 쓴 규칙을 List에 넣기
         String voteString = String.join(",", voteList); // 규칙 List를 하나의 String으로 받기
@@ -69,7 +76,6 @@ public class RuleService {
             }
         }
         if (successRule.isEmpty() || isGuitar) { //즉 합의된 규칙이 없거나 기타의견이 있어요 라는 항목이 있을시 mismatch
-            //room.getAllVote().clear(); //mismatch를 주기전에 투표함을 다 비움
 
             List<String> allOpinion = new ArrayList<>(ruleCount.keySet()); //사람들이 선택한 의견들을 다 넣음
             Collections.sort(allOpinion); // 보기 좋게 정리함
@@ -84,7 +90,6 @@ public class RuleService {
             ruleRepository.save(rule);
         }
 
-        room.getAllVote().clear();
         return new MatchResponse(currentVotes, "MATCH", successRule, amIHost, "category"); // 규칙이 합의 되면 MATCH와 successRule 주기
     }
 
@@ -92,13 +97,28 @@ public class RuleService {
         Room room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() -> new IllegalArgumentException("찾는 방이 없습니다."));
 
+        if (!room.getAllVote().isEmpty() && room.getAllVote().get(0).matches("\\d+")) { //matches("\\d+") 이 코드가 투표함 안에 다 숫자인지 확인하고 숫자면 true 아니면 false 반환
+            room.getAllVote().clear(); // 그 전 startNext에서 있었던 userId나 count들 지움
+        }
+
         boolean amIHost = isHost(room, userId);
 
         int memberCount = room.getMembers().size();
         List<String> currentVote = room.getAllVote();
         int currentVotes = currentVote.size();
 
-        if (currentVote.size() < memberCount) {
+        for (String hostAdd : currentVote) {
+            if (hostAdd.startsWith("GO_AFTER_MISMATCH")) {
+                String debateRule = hostAdd.replace("GO_AFTER_MISMATCH", "");
+
+                List<String> afterRule = new ArrayList<>();
+                afterRule.add(debateRule);
+
+                return new MatchResponse(currentVotes, "AFTER_MISMATCH", afterRule, amIHost, "category");
+            }
+        }
+
+        if (currentVotes < memberCount) {
             return new MatchResponse(currentVotes, "WAITING", null, amIHost, "category");
         }
         //합의된 룰이 없을때 투표함 열어서 리스트 만들기
@@ -107,9 +127,9 @@ public class RuleService {
         boolean isGuitar = false;
         Map<String, Integer> ruleCount = new HashMap<>();
 
-        for (String vote : allVoteArray) {
-            if (vote.equals(Guitar)) isGuitar = true;
-            ruleCount.put(vote, ruleCount.getOrDefault(vote, 0) + 1);
+        for (String voteGuitar : allVoteArray) {
+            if (voteGuitar.equals(Guitar)) isGuitar = true;
+            ruleCount.put(voteGuitar, ruleCount.getOrDefault(voteGuitar, 0) + 1);
         }
 
         List<String> successRule = new ArrayList<>();
@@ -126,6 +146,7 @@ public class RuleService {
             return new MatchResponse(currentVotes, "MISMATCH", allOpinion, amIHost, "category");
         } else {
             // MATCH일 때 투표함이 비워지지 않았으므로 여기로 들어옴
+            room.getAllVote().clear();
             return new MatchResponse(currentVotes, "MATCH", successRule, amIHost, "category");
         }
     }
@@ -135,19 +156,24 @@ public class RuleService {
         Room room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() -> new IllegalArgumentException("방이 없습니다."));
 
+        if (!room.getAllVote().isEmpty() && !room.getAllVote().get(0).matches("\\d+")) { //matches("\\d+") 이 코드가 투표함 안에 다 숫자인지 확인하고 숫자면 true 아니면 false 반환
+            room.getAllVote().clear(); //이건 그 전 문자열 다 지우기 투표할때 문자열 넣으니까
+        }
         String userVote = String.valueOf(userId);
-        room.addVote(userVote);
 
+        if (!room.getAllVote().contains(userVote)) {
+            room.addVote(userVote);
+        }
         int memberCount = room.getMembers().size();
         int confirmCount = room.getAllVote().size();
 
         if (confirmCount >= memberCount) {
-            room.getAllVote().clear();
             return "PASS";
         } else {
             return "WAITING";
         }
     }
+
     @Transactional
     public void confirmRule(String roomCode, RuleRequest ruleRequest, Long userId) {
         Room room = roomRepository.findByRoomCode(roomCode)
@@ -165,6 +191,7 @@ public class RuleService {
         ruleRepository.save(rule);
 
         room.getAllVote().clear();
+        room.addVote("GO_AFTER_MISMATCH"+debateRule);
     }
 
     public boolean isHost(Room room, Long userId) {
@@ -191,14 +218,14 @@ public class RuleService {
     }
 
     @Transactional
-    public void updateRule(String roomCode, Long userId, RuleRequest request) {
+    public void updateRule(String roomCode, Long userId, Long ruleId, RuleRequest request) {
         Room room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() -> new IllegalArgumentException("찾는 방이 없습니다."));
 
         if (!isHost(room, userId)) {
             throw new IllegalArgumentException("방장만 규칙을 수정 할 수 있습니다.");
         }
-        Rule rule = ruleRepository.findByRoomAndQuestionId(room, request.getQuestionId())
+        Rule rule = ruleRepository.findByIdAndRoom(ruleId, room)
                 .orElseThrow(() -> new IllegalArgumentException("해당 규칙이 존재하지 않습니다."));
         rule.updateRule(request.getOpinion().get(0));
     }
@@ -219,7 +246,16 @@ public class RuleService {
                 .orElseThrow(() -> new IllegalArgumentException("찾는 방이 없습니다."));
 
         boolean amIHost = isHost(room, userId);
-        List<Rule> rules = ruleRepository.findAllByRoom(room);
+
+        List<RuleSummaryResponse> rules = ruleRepository.findAllByRoom(room).stream()
+                .map(rule -> RuleSummaryResponse.builder()
+                        .id(rule.getId())
+                        .rule(rule.getRule())
+                        .questionId(rule.getQuestionId())
+                        .build())
+                .toList();
+
+
         String category = request.getCategory();
 
         return UpdateRuleResponse.builder()
